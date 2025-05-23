@@ -1,30 +1,28 @@
 import os
-import repli:contentReference[oaicite:0]{index=0}─────────────────────────────
-# This will let the Replicate client authenticate.:contentReference[oaicite:1]{index=1}EL MAP ──────────────────────────────────────────────────
-# You can extend this with other pu:contentReference[oaicite:2]{index=2}"Cartoon Diffusion":     "lambdalabs/cartoon-diffusion"
-}
+import cv2
+import numpy as np
+import gradio as gr
 
-def generate_style(image_path, style):
+def cartoonify(image: np.ndarray) -> np.ndarray:
     """
- :contentReference[oaicite:3]{index=3}rns the URL of the transformed image.
+    OpenCV’nin stylization filtresiyle çizgi film efekti uygular.
     """
-    model_id = STYLE_MODEL_MAP.get(style)
-    if not m:contentReference[oaicite:4]{index=4} file for you
-    output = replicate.run(
-        model_id,
-        input={"image": image_path}
-    )
-    return output  # usually a URL or direct image bytes, depending :contentReference[oaicite:5]{index=5}) as demo:
-    gr.Markdown("## 🎨 Cartoonize Your Photo")
-    with g:contentReference[oaicite:6]{index=6}                choices=list(STYLE_MODEL_MAP.keys()),
-                value="A:contentReference[oaicite:7]{index=7}= gr.Image(type="filepath", label="Upload Your Photo")
-            submit = gr.Button("Generate")
-        with gr.Column():
-            resu:contentReference[oaicite:8]{index=8}s=[image, style],
-        outputs=result
-    )
+    # Gradio’dan gelen RGB’yi BGR’ye çevir
+    img_bgr = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
+    # stylization: sigma_s uzaysal yumuşatma, sigma_r renk aralığı yumuşatma
+    cartoon_bgr = cv2.stylization(img_bgr, sigma_s=150, sigma_r=0.25)
+    # tekrar RGB’ye çevir ve döndür
+    return cv2.cvtColor(cartoon_bgr, cv2.COLOR_BGR2RGB)
 
-# ─── LAUNCH ───────────────────────────────────────────────────────────────────
-if __name__ == ":contentReference[oaicite:9]{index=9}or local dev
+with gr.Blocks() as demo:
+    gr.Markdown("## 🖼️ Fotoğrafını Yükle – Çizgi Filme Dönüştürelim!")
+    with gr.Row():
+        inp = gr.Image(source="upload", type="numpy", label="Fotoğraf Yükle")
+        out = gr.Image(type="numpy", label="Çizgi Film Versiyonu")
+    btn = gr.Button("Çizgi Filme Dönüştür!")
+    btn.click(fn=cartoonify, inputs=inp, outputs=out)
+
+if __name__ == "__main__":
+    # Render’ın verdiği PORT’u ya da lokalde 7860’ı kullan
     port = int(os.environ.get("PORT", 7860))
     demo.launch(server_name="0.0.0.0", server_port=port)
