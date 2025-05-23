@@ -1,17 +1,16 @@
-
 import gradio as gr
-from PIL import Image
+import replicate
+import os
 
-def fake_rick_and_morty_style(image):
-    image = image.resize((512, 512))
-    return image
+client = replicate.Client(api_token=os.environ["REPLICATE_API_TOKEN"])
 
-iface = gr.Interface(
-    fn=fake_rick_and_morty_style,
-    inputs=gr.Image(type="pil"),
-    outputs="image",
-    title="Rick and Morty Avatar Dönüştürücü",
-    description="Fotoğrafını yükle, Rick and Morty stiline dönüşsün!"
-)
+def generate_anime_style(image):
+    output = client.run(
+        "fofr/anything-to-anime:4b14dc403b4ca44aa657f9261b31e923b32ec8c30b8e896c703b71eabfcd4dfb",
+        input={"image": open(image.name, "rb")}
+    )
+    return output
 
-iface.launch()
+gr.Interface(fn=generate_anime_style, 
+             inputs=gr.Image(type="file"), 
+             outputs="image").launch(server_port=int(os.environ.get('PORT', 7860)))
